@@ -1,6 +1,5 @@
 #include "CRC8.h"
 
-// Configurazione CRC identica a Python
 CRC8 crc(0x07, 0x00, 0x00, false, false); 
 
 void setup() {
