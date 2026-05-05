@@ -1,11 +1,11 @@
 from enum import IntEnum
 
 class ProgramState(IntEnum):
-    P_STOP = 0
     P_PRINCIPAL = 1
+    P_STOP = 0
     P_CLEAN = 2
-    P_NOW_CALIBRATION = 3
     P_NOW_ABSORBANCE = 4
+    P_NOW_CALIBRATION = 3
 
 class MessageID(IntEnum):
     # Program (GUI -> STM32)
@@ -54,4 +54,27 @@ PAYLOAD_FORMATS = {
     
     MessageID.M_ACK: '',              # None (0 byte)
     MessageID.M_NACK: ''              # None (0 byte)
+}
+
+STATE_INFO = {
+    ProgramState.P_PRINCIPAL: {
+        "name": "PRINCIPAL", 
+        "tooltip": "Starts the dialysate analysis using the configured parameters. Estimated duration: 180 minutes."
+    },
+    ProgramState.P_STOP: {
+        "name": "STOP", 
+        "tooltip": "Immediately stops all pumps, LEDs and halts all processes."
+    },
+    ProgramState.P_CLEAN: {
+        "name": "CLEAN", 
+        "tooltip": "Starts the cleaning procedure for the mechanical system. Estimated duration: 10 minutes."
+    },
+    ProgramState.P_NOW_ABSORBANCE: {
+        "name": "ABSORBANCE VALUE", 
+        "tooltip": "Requests a single and immediate reading of the absorbance value."
+    },
+    ProgramState.P_NOW_CALIBRATION: {
+        "name": "CALIBRATION", 
+        "tooltip": "Calculates and sets the calibration offset for the photodiode and optical sensors."
+    }
 }
