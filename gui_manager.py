@@ -64,7 +64,7 @@ QToolTip {
 class GUIManager(QWidget):
     request_send = Signal(int, object)
     ratio_dd = 0.8
-    fluid_velocity = 0.2
+    fluid_velocity = 20
     sampling_rate = 0.1
 
     def __init__(self):
@@ -98,11 +98,11 @@ class GUIManager(QWidget):
         self.slider_ratio.valueChanged.connect(lambda val: self.update_slider(self.val_ratio, val, MessageID.M_RATIO_DD, "%"))
         controls_layout.addLayout(self.make_slider_row("Ratio Dialysed/Dye:", self.slider_ratio, self.val_ratio))
 
-        self.val_vel = QLabel(f"{int(self.fluid_velocity * 100)} mL/s")
+        self.val_vel = QLabel(f"{int(self.fluid_velocity)} mL/s")
         self.val_vel.setObjectName("ValueLabel")
         self.slider_velocity = QSlider(Qt.Horizontal)
         self.slider_velocity.setRange(0, 100)
-        self.slider_velocity.setValue(int(self.fluid_velocity * 100))
+        self.slider_velocity.setValue(int(self.fluid_velocity))
         self.slider_velocity.valueChanged.connect(lambda val: self.update_slider(self.val_vel, val, MessageID.M_FLUID_VELOCITY, " mL/s"))
         controls_layout.addLayout(self.make_slider_row("Fluid Velocity:", self.slider_velocity, self.val_vel))
 

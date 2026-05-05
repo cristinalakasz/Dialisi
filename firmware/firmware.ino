@@ -15,6 +15,7 @@ const uint8_t M_PROGRAM    = 0x01;
 const uint8_t M_RATIO_DD   = 0x10;
 const uint8_t M_LED_UV     = 0x14;
 const uint8_t M_ABS_UV     = 0x20;
+const uint8_t M_RATE       = 0x30; // <-- NUOVO: ID per il Sampling Rate
 const uint8_t M_ACK        = 0xFA;
 const uint8_t M_NACK       = 0xFB;
 
@@ -24,7 +25,7 @@ const int32_t P_PRINCIPAL  = 1;
 // --- VARIABILI DI STATO ---
 bool isRunning = false;
 unsigned long lastSendTime = 0;
-const unsigned long SEND_INTERVAL = 1000; // Invia dati al grafico ogni 100ms (10 Hz)
+unsigned long sendInterval = 1000; // <-- NUOVO: Ora è una variabile dinamica (default 1s)
 
 // --- FUNZIONE CRC-8 ---
 // Corrisponde esattamente a crcmod.mkCrcFun(0x107, initCrc=0x00, rev=False)
@@ -150,6 +151,15 @@ void loop() {
                     bool ledState = payload[0]; // 1 byte Bool
                     digitalWrite(LED_PIN, ledState ? HIGH : LOW);
                 }
+                // --- NUOVO: GESTIONE SAMPLING RATE ---
+                else if (id == M_RATE && len == 4) {
+                    float rateSlider;
+                    memcpy(&rateSlider, payload, 4); // Float 32 bit
+                    
+                    // Slider: 0 = 10 sec (10000ms), 100 = 1 sec (1000ms)
+                    long interval = map((long)rateSlider, 0, 100, 10000, 1000);
+                    sendInterval = constrain(interval, 1000, 10000);
+                }
                 
             } else {
                 sendNack(); // Errore di comunicazione, richiede reinvio
@@ -157,25 +167,23 @@ void loop() {
         }
     }
 
-        // ==========================================
+    // ==========================================
     // 2. LETTURA SENSORI (SOLO QUANDO ATTIVO)
     // ==========================================
     if (isRunning) {
-        if (millis() - lastSendTime >= SEND_INTERVAL) {
+        if (millis() - lastSendTime >= sendInterval) { // Usa il nuovo intervallo dinamico
             lastSendTime = millis();
             
             // Legge il fotoresistore (con il tuo circuito: Buio = ~1023, Luce = verso lo 0)
             int rawPhoto = analogRead(PHOTO_PIN);
             
-            // Inverte e scala il valore: 
-            // Quando rawPhoto è 1023 (buio), diventa 0.
-            // Quando rawPhoto è 0 (luce massima teorica), diventa 100.
+            // Inverte e scala il valore
             int mappedPhoto = map(rawPhoto, 1023, 0, 0, 100);
             
-            // Limita il valore strettamente tra 0 e 100 (taglia eventuali sbavature del sensore)
+            // Limita il valore
             mappedPhoto = constrain(mappedPhoto, 0, 100);
             
-            // Converte in float perché la GUI si aspetta un dato a 32-bit ('<f')
+            // Converte in float ('<f')
             float photoVal = (float)mappedPhoto; 
             
             // Invia il valore alla GUI
